@@ -37,21 +37,21 @@
       align-items: flex-start;
       justify-content: center;
       padding: 24px 16px;
-      position: relative;      /* for watermark */
-      overflow-x: hidden;      /* avoid scroll from watermark */
+      position: relative;
+      overflow-x: hidden;
     }
 
     /* === WATERMARK LOGO BEHIND CARD (TOP-LEFT) === */
     body::before {
       content: "";
       position: fixed;
-      top: 0px;
+      top: 20px;
       left: 20px;
-      width: 200px;    /* adjust size if you like */
-      height: 100px;
-      background: url("Logo.svg") no-repeat center/contain;
-      opacity: 1;   /* 0.05–0.25 is a good range */
-      z-index: -1;     /* keep it behind everything */
+      width: 200px;
+      height: 200px;
+      background: url("quantil-logo.png") no-repeat center/contain;
+      opacity: 0.08;
+      z-index: -1;
       pointer-events: none;
     }
 
@@ -82,7 +82,7 @@
       border: 1px solid var(--card-border);
       box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
       overflow: hidden;
-      position: relative; /* sits above watermark */
+      position: relative;
       z-index: 0;
     }
 
@@ -196,7 +196,6 @@
       }
     }
 
-    /* When logged in, we can tweak layout if needed */
     .layout.logged-in {
       flex-direction: column;
     }
@@ -480,56 +479,14 @@
               <div class="section">
                 <div class="section-header">
                   <div class="section-title">Core policies</div>
-                  <div class="section-meta">Key documents · Word / Excel / PDF</div>
+                  <div class="section-meta">Files in /Policies</div>
                 </div>
-                <ul class="files">
-                  <!-- Replace href values with your actual links (Word, Excel, PDF, etc.) -->
+                <ul class="files" id="policiesList">
                   <li class="file">
                     <div class="file-main">
-                      <div class="file-name">
-                        Quality Statement
-                      </div>
-                      <div class="file-meta">
-                        PDF or DOCX · v1.0 · Last updated: Jan 2025
-                      </div>
+                      <div class="file-name">Loading…</div>
+                      <div class="file-meta">Fetching policy files</div>
                     </div>
-                    <a
-                      href="Quality Statement.docx"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >Open</a>
-                  </li>
-
-                  <li class="file">
-                    <div class="file-main">
-                      <div class="file-name">
-                        Complaints Policy
-                      </div>
-                      <div class="file-meta">
-                        DOCX · v2.1 · Last updated: Jan 2025
-                      </div>
-                    </div>
-                    <a
-                      href="Complaints Policy.docx"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >Open</a>
-                  </li>
-
-                  <li class="file">
-                    <div class="file-main">
-                      <div class="file-name">
-                        IT Disaster Recovery Plan
-                      </div>
-                      <div class="file-meta">
-                        XLSX · Updated weekly
-                      </div>
-                    </div>
-                    <a
-                      href="IT Disaster Recovery Plan.docx"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >Open</a>
                   </li>
                 </ul>
               </div>
@@ -537,39 +494,14 @@
               <div class="section">
                 <div class="section-header">
                   <div class="section-title">Training materials</div>
-                  <div class="section-meta">Inductions, SOPs, visual guides</div>
+                  <div class="section-meta">Files in /Training</div>
                 </div>
-                <ul class="files">
+                <ul class="files" id="trainingList">
                   <li class="file">
                     <div class="file-main">
-                      <div class="file-name">
-                        Compliance Training Quiz
-                      </div>
-                      <div class="file-meta">
-                        PDF · v1.3 · Approx. 20 mins to read
-                      </div>
+                      <div class="file-name">Loading…</div>
+                      <div class="file-meta">Fetching training files</div>
                     </div>
-                    <a
-                      href="Compliance Training Quiz.docx"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >Open</a>
-                  </li>
-
-                  <li class="file">
-                    <div class="file-main">
-                      <div class="file-name">
-                        Cybersecurity Training Quiz
-                      </div>
-                      <div class="file-meta">
-                        PDF or DOCX · v1.0 · 2 pages
-                      </div>
-                    </div>
-                    <a
-                      href="Cybersecurity Training Quiz.docx"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >Open</a>
                   </li>
                 </ul>
               </div>
@@ -601,8 +533,15 @@
     // ==============================
     //   CONFIGURE YOUR PASSWORD HERE
     // ==============================
-    // Change this to your real password.
-    const ACCESS_PASSWORD = "password";
+    const ACCESS_PASSWORD = "password"; // CHANGE THIS
+
+    // ==============================
+    //   CONFIGURE YOUR GITHUB REPO
+    // ==============================
+    // Set these to match the repo where this page lives
+    const GITHUB_OWNER = "quantildev";   // e.g. "quantildev"
+    const GITHUB_REPO  = "Policy-Training";         // e.g. "QuantilTrainingPortal"
+    const GITHUB_BRANCH = "main";                  // or "master" if that’s your default
 
     const passwordInput = document.getElementById("password");
     const enterBtn = document.getElementById("enterBtn");
@@ -610,6 +549,69 @@
     const contentArea = document.getElementById("contentArea");
     const loginColumn = document.getElementById("loginColumn");
     const layout = document.getElementById("layout");
+
+    async function loadFolder(folder, listElementId) {
+      const ul = document.getElementById(listElementId);
+      if (!ul) return;
+
+      try {
+        const apiUrl = `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${folder}?ref=${GITHUB_BRANCH}`;
+        const res = await fetch(apiUrl);
+
+        if (!res.ok) {
+          throw new Error("HTTP " + res.status);
+        }
+
+        const items = await res.json();
+        const files = items.filter(item => item.type === "file");
+
+        if (!files.length) {
+          ul.innerHTML = `
+            <li class="file">
+              <div class="file-main">
+                <div class="file-name">No files found</div>
+                <div class="file-meta">Add files to the ${folder}/ folder in the repo.</div>
+              </div>
+            </li>
+          `;
+          return;
+        }
+
+        ul.innerHTML = "";
+
+        files.forEach(file => {
+          const li = document.createElement("li");
+          li.className = "file";
+
+          const nameWithoutExt = file.name.replace(/\.[^/.]+$/, "");
+          const extMatch = file.name.match(/\.([^./]+)$/);
+          const ext = extMatch ? extMatch[1].toUpperCase() : "";
+
+          // Link points to the static file served by GitHub Pages
+          const href = `${folder}/${encodeURIComponent(file.name)}`;
+
+          li.innerHTML = `
+            <div class="file-main">
+              <div class="file-name">${nameWithoutExt}</div>
+              <div class="file-meta">${ext || "File"} · ${file.name}</div>
+            </div>
+            <a href="${href}" target="_blank" rel="noopener noreferrer">Open</a>
+          `;
+
+          ul.appendChild(li);
+        });
+      } catch (err) {
+        console.error(err);
+        ul.innerHTML = `
+          <li class="file">
+            <div class="file-main">
+              <div class="file-name">Error loading files</div>
+              <div class="file-meta">Check repo name/owner or try again later.</div>
+            </div>
+          </li>
+        `;
+      }
+    }
 
     function checkPassword() {
       const value = passwordInput.value.trim();
@@ -623,12 +625,9 @@
         errorText.style.display = "none";
         contentArea.classList.add("visible");
 
-        // Hide the login column once signed in
         if (loginColumn) {
           loginColumn.style.display = "none";
         }
-
-        // Optional: mark layout as logged in (for different flex behaviour)
         if (layout) {
           layout.classList.add("logged-in");
         }
@@ -651,6 +650,9 @@
 
     window.addEventListener("load", () => {
       passwordInput.focus();
+      // Preload file lists (even though content is hidden until password)
+      loadFolder("Policies", "policiesList");
+      loadFolder("Training", "trainingList");
     });
   </script>
 </body>
