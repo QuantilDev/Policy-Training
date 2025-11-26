@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Quantil Training Portal</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    /* ===============================
+       THEME COLOURS – tweak here
+       =============================== */
+    :root {
+      --bg-page: #f3f4f6;          /* page background */
+      --card-bg: #ffffff;          /* main card background */
+      --card-border: #e5e7eb;
+      --accent: #fd7e14;           /* accent colour */
+      --accent-soft: rgba(34, 164, 71, 0.08);
+      --accent-border: rgba(34, 164, 71, 0.5);
+      --text-main: #111827;
+      --text-muted: #6b7280;
+      --danger: #dc2626;
+      --header-bg: #685D4B;        /* header bar */
+      --header-text: #f9fafb;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+        sans-serif;
+      background: var(--bg-page);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 24px 16px;
+    }
+
+    @media (min-width: 768px) {
+      body {
+        align-items: center;
+        padding: 32px 16px;
+      }
+    }
+
+    .shell {
+      width: 100%;
+      max-width: 760px;
+    }
+
+    .portal-card {
+      background: var(--card-bg);
+      border-radius: 12px;
+      border: 1px solid var(--card-border);
+      box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+      overflow: hidden;
+    }
+
+    /* Top header bar – similar to an internal app */
+    .card-header {
+      background: var(--header-bg);
+      color: var(--header-text);
+      padding: 12px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .card-header-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .logo-circle {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: var(--accent-soft);
+      border: 1px solid var(--accent-border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--accent);
+    }
+
+    .header-title {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .header-title-main {
+      font-size: 15px;
+      font-weight: 600;
+    }
+
+    .header-title-sub {
+      font-size: 11px;
+      opacity: 0.75;
+    }
+
+    .card-header-right {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.11em;
+      padding: 2px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(249, 250, 251, 0.25);
+      opacity: 0.9;
+    }
+
+    .card-body {
+      padding: 18px 18px 16px;
+    }
+
+    .page-title {
+      font-size: 20px;
+      font-weight: 600;
+      margin: 0;
+    }
+
+    .page-sub {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin: 4px 0 0;
+      max-width: 560px;
+    }
+
+    .pill-inline {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 2px 9px;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      border: 1px solid var(--accent-border);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--accent);
+      margin-left: 8px;
+    }
+
+    .pill-inline-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 999px;
+      background: var(--accent);
+    }
+
+    .layout {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      margin-top: 16px;
+    }
+
+    @media (min-width: 768px) {
+      .layout {
+        flex-direction: row;
+        align-items: flex-start;
+      }
+    }
+
+    /* When logged in, we can tweak layout if needed */
+    .layout.logged-in {
+      flex-direction: column;
+    }
+
+    @media (min-width: 768px) {
+      .layout.logged-in {
+        flex-direction: column;
+      }
+    }
+
+    .login-column {
+      flex: 0 0 260px;
+    }
+
+    .content-column {
+      flex: 1;
+    }
+
+    .panel {
+      border-radius: 10px;
+      border: 1px solid #e5e7eb;
+      background: #f9fafb;
+      padding: 12px 12px 10px;
+    }
+
+    .panel-title {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+    }
+
+    .field-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+    }
+
+    .field-row {
+      display: flex;
+      gap: 8px;
+    }
+
+    input[type="password"] {
+      flex: 1;
+      border-radius: 999px;
+      border: 1px solid #d1d5db;
+      padding: 8px 10px;
+      font-size: 14px;
+      outline: none;
+    }
+
+    input[type="password"]:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 1px var(--accent-soft);
+    }
+
+    input[type="password"]::placeholder {
+      color: #9ca3af;
+    }
+
+    .btn {
+      border-radius: 999px;
+      border: none;
+      padding: 8px 14px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      background: var(--accent);
+      color: #f9fafb;
+      white-space: nowrap;
+      min-width: 90px;
+      transition: background 0.1s ease, transform 0.05s ease,
+        box-shadow 0.1s ease;
+      box-shadow: 0 8px 20px rgba(34, 164, 71, 0.3);
+    }
+
+    .btn:hover {
+      background: #685D4B;
+    }
+
+    .btn:active {
+      transform: translateY(1px);
+      box-shadow: 0 5px 14px rgba(34, 164, 71, 0.25);
+    }
+
+    .hint {
+      margin-top: 8px;
+      font-size: 11px;
+      color: var(--text-muted);
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .error {
+      margin-top: 6px;
+      font-size: 12px;
+      color: var(--danger);
+      display: none;
+    }
+
+    .content-area {
+      display: none;
+    }
+
+    .content-area.visible {
+      display: block;
+    }
+
+    .section {
+      border-radius: 10px;
+      border: 1px solid #e5e7eb;
+      background: #ffffff;
+      padding: 10px 12px 10px;
+      margin-bottom: 10px;
+    }
+
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 8px;
+      margin-bottom: 6px;
+    }
+
+    .section-title {
+      font-size: 13px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .section-meta {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    ul.files {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .file {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      padding: 6px 6px;
+      border-radius: 8px;
+      background: #f9fafb;
+    }
+
+    .file-main {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .file-name {
+      font-size: 13px;
+    }
+
+    .file-meta {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .file a {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      padding: 4px 9px;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent);
+      text-decoration: none;
+      border: 1px solid var(--accent-border);
+      white-space: nowrap;
+    }
+
+    .file a:hover {
+      background: rgba(34, 164, 71, 0.12);
+    }
+
+    .notice-text {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin: 0;
+      line-height: 1.4;
+    }
+
+    .card-footer {
+      padding: 8px 18px 12px;
+      border-top: 1px solid #e5e7eb;
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 8px;
+      font-size: 11px;
+      color: var(--text-muted);
+      background: #f9fafb;
+    }
+
+    .badge {
+      padding: 2px 7px;
+      border-radius: 999px;
+      border: 1px solid #d1d5db;
+      background: #ffffff;
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <div class="portal-card">
+      <div class="card-header">
+        <div class="card-header-left">
+          <div class="logo-circle">Q</div>
+          <div class="header-title">
+            <div class="header-title-main">Quantil Training Portal</div>
+            <div class="header-title-sub">Internal documents and procedures</div>
+          </div>
+        </div>
+        <div class="card-header-right">
+          STAFF ACCESS ONLY
+        </div>
+      </div>
+
+      <div class="card-body">
+        <h1 class="page-title">
+          Training &amp; Policy Library
+          <span class="pill-inline">
+            <span class="pill-inline-dot"></span>
+            Live
+          </span>
+        </h1>
+        <p class="page-sub">
+          Central access to policies, SOPs, and training materials for
+          production and greenhouse staff. Enter the current access password
+          to view the latest documents.
+        </p>
+
+        <div class="layout" id="layout">
+          <!-- LEFT: LOGIN -->
+          <div class="login-column" id="loginColumn">
+            <div class="panel">
+              <div class="panel-title">Sign in</div>
+              <div class="field-label">Access password</div>
+              <div class="field-row">
+                <input
+                  id="password"
+                  type="password"
+                  autocomplete="off"
+                  placeholder="Enter password"
+                />
+                <button class="btn" id="enterBtn">Unlock</button>
+              </div>
+              <div class="hint">
+                <span>• Password shared via management only</span>
+                <span>• Do not share outside Quantil</span>
+              </div>
+              <div class="error" id="errorText">
+                Incorrect password. Please check with your supervisor and try again.
+              </div>
+            </div>
+          </div>
+
+          <!-- RIGHT: CONTENT -->
+          <div class="content-column">
+            <div class="content-area" id="contentArea">
+              <div class="section">
+                <div class="section-header">
+                  <div class="section-title">Core policies</div>
+                  <div class="section-meta">Key documents · Word / Excel / PDF</div>
+                </div>
+                <ul class="files">
+                  <!-- Replace href values with your actual links (Word, Excel, PDF, etc.) -->
+                  <li class="file">
+                    <div class="file-main">
+                      <div class="file-name">
+                        Quality Statement
+                      </div>
+                      <div class="file-meta">
+                        PDF or DOCX · v1.0 · Last updated: Jan 2025
+                      </div>
+                    </div>
+                    <a
+                      href="Quality Statement.docx"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >Open</a>
+                  </li>
+
+                  <li class="file">
+                    <div class="file-main">
+                      <div class="file-name">
+                        Complaints Policy
+                      </div>
+                      <div class="file-meta">
+                        DOCX · v2.1 · Last updated: Jan 2025
+                      </div>
+                    </div>
+                    <a
+                      href="Complaints Policy.docx"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >Open</a>
+                  </li>
+
+                  <li class="file">
+                    <div class="file-main">
+                      <div class="file-name">
+                        IT Disaster Recovery Plan
+                      </div>
+                      <div class="file-meta">
+                        XLSX · Updated weekly
+                      </div>
+                    </div>
+                    <a
+                      href="IT Disaster Recovery Plan.docx"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >Open</a>
+                  </li>
+                </ul>
+              </div>
+
+              <div class="section">
+                <div class="section-header">
+                  <div class="section-title">Training materials</div>
+                  <div class="section-meta">Inductions, SOPs, visual guides</div>
+                </div>
+                <ul class="files">
+                  <li class="file">
+                    <div class="file-main">
+                      <div class="file-name">
+                        Compliance Training Quiz
+                      </div>
+                      <div class="file-meta">
+                        PDF · v1.3 · Approx. 20 mins to read
+                      </div>
+                    </div>
+                    <a
+                      href="Compliance Training Quiz.docx"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >Open</a>
+                  </li>
+
+                  <li class="file">
+                    <div class="file-main">
+                      <div class="file-name">
+                        Cybersecurity Training Quiz
+                      </div>
+                      <div class="file-meta">
+                        PDF or DOCX · v1.0 · 2 pages
+                      </div>
+                    </div>
+                    <a
+                      href="Cybersecurity Training Quiz.docx"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >Open</a>
+                  </li>
+                </ul>
+              </div>
+
+              <div class="section">
+                <div class="section-header">
+                  <div class="section-title">Notice</div>
+                  <div class="section-meta">Internal use only</div>
+                </div>
+                <p class="notice-text">
+                  These documents are confidential and for Quantil internal use
+                  only. Do not forward, upload, screenshot, or share any material
+                  outside the business without written approval from management.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card-footer">
+        <span class="badge">Quantil · Internal</span>
+        <span>For greenhouse &amp; production staff training only.</span>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ==============================
+    //   CONFIGURE YOUR PASSWORD HERE
+    // ==============================
+    // Change this to your real password.
+    const ACCESS_PASSWORD = "password";
+
+    const passwordInput = document.getElementById("password");
+    const enterBtn = document.getElementById("enterBtn");
+    const errorText = document.getElementById("errorText");
+    const contentArea = document.getElementById("contentArea");
+    const loginColumn = document.getElementById("loginColumn");
+    const layout = document.getElementById("layout");
+
+    function checkPassword() {
+      const value = passwordInput.value.trim();
+      if (!value) {
+        errorText.textContent = "Please enter a password.";
+        errorText.style.display = "block";
+        return;
+      }
+
+      if (value === ACCESS_PASSWORD) {
+        errorText.style.display = "none";
+        contentArea.classList.add("visible");
+
+        // Hide the login column once signed in
+        if (loginColumn) {
+          loginColumn.style.display = "none";
+        }
+
+        // Optional: mark layout as logged in (for different flex behaviour)
+        if (layout) {
+          layout.classList.add("logged-in");
+        }
+      } else {
+        errorText.textContent =
+          "Incorrect password. Please check with your supervisor and try again.";
+        errorText.style.display = "block";
+        passwordInput.value = "";
+        passwordInput.focus();
+      }
+    }
+
+    enterBtn.addEventListener("click", checkPassword);
+
+    passwordInput.addEventListener("keydown", function (event) {
+      if (event.key === "Enter") {
+        checkPassword();
+      }
+    });
+
+    window.addEventListener("load", () => {
+      passwordInput.focus();
+    });
+  </script>
+</body>
+</html>
